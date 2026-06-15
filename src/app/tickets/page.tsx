@@ -258,4 +258,105 @@ export default function TicketsPage() {
                     <option value="__unassign__">Unassign</option>
                     {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
                   </select>
-                  {bulkAssigneeI
+                  {bulkAssigneeId && (
+                    <button
+                      onClick={() => {
+                        bulkUpdate({ assigneeId: bulkAssigneeId === "__unassign__" ? null : bulkAssigneeId });
+                        setBulkAssigneeId("");
+                      }}
+                      disabled={bulkLoading}
+                      className="text-xs bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-700 disabled:opacity-50"
+                    >
+                      Apply
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+            <button onClick={() => setSelected(new Set())} className="ml-auto text-xs text-gray-400 hover:text-gray-600">
+              Deselect
+            </button>
+          </div>
+        )}
+
+        {/* Tickets list */}
+        <div className="bg-white rounded-xl border border-gray-200">
+          {loading ? (
+            <div className="py-16 text-center text-sm text-gray-400">Loading…</div>
+          ) : tickets.length === 0 ? (
+            <div className="py-16 text-center">
+              <p className="text-sm text-gray-500">{search ? `No tickets matching "${search}"` : "No tickets found."}</p>
+              {!search && (
+                <Link href="/tickets/new" className="text-sm text-indigo-600 hover:underline mt-1 inline-block">
+                  Create one →
+                </Link>
+              )}
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-50">
+              {/* Select all row */}
+              <div className="flex items-center gap-3 px-4 sm:px-6 py-2 bg-gray-50 rounded-t-xl">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={toggleAll}
+                  className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                <span className="text-xs text-gray-400">Select all</span>
+              </div>
+
+              {tickets.map((ticket) => {
+                const isOverdue = ticket.dueDate && isPast(new Date(ticket.dueDate)) && !["DONE", "ARCHIVED"].includes(ticket.status);
+                const isSelected = selected.has(ticket.id);
+                return (
+                  <div
+                    key={ticket.id}
+                    className={`flex items-start gap-3 px-4 sm:px-6 py-4 hover:bg-gray-50 transition-colors ${isSelected ? "bg-indigo-50 hover:bg-indigo-50" : ""}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleOne(ticket.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="mt-1 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 flex-shrink-0"
+                    />
+                    <Link href={`/tickets/${ticket.id}`} className="flex-1 min-w-0 flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {ticket.category && (
+                            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: ticket.category.color }} />
+                          )}
+                          <p className="text-sm font-medium text-gray-900">{ticket.title}</p>
+                          {ticket._count.comments > 0 && (
+                            <span className="text-xs text-gray-400">💬 {ticket._count.comments}</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 sm:gap-3 mt-1.5 flex-wrap">
+                          <PriorityBadge priority={ticket.priority} />
+                          {ticket.category && <span className="text-xs text-gray-400">{ticket.category.name}</span>}
+                          <span className="text-xs text-gray-400 hidden sm:inline">by {ticket.createdBy.name}</span>
+                          {ticket.assignee
+                            ? <span className="text-xs text-gray-400">→ {ticket.assignee.name}</span>
+                            : <span className="text-xs text-amber-600 font-medium">Unassigned</span>
+                          }
+                        </div>
+                      </div>
+                      <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1 sm:gap-3 flex-shrink-0 pt-0.5">
+                        {ticket.dueDate && (
+                          <span className={`text-xs ${isOverdue ? "text-red-600 font-medium" : "text-gray-400"}`}>
+                            {isOverdue ? "⚠ Overdue" : formatDistanceToNow(new Date(ticket.dueDate), { addSuffix: true })}
+                          </span>
+                        )}
+                        <StatusBadge status={ticket.status} />
+                      </div>
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+              }
