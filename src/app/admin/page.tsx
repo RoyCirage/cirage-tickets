@@ -234,4 +234,25 @@ export default function AdminPage() {
                 <input
                   type="color"
                   value={newCat.color}
-                  onChange={(e) => set
+                  onChange={(e) => setNewCat((f) => ({ ...f, color: e.target.value }))}
+                  className="w-10 h-8 border border-gray-200 rounded cursor-pointer"
+                />
+                <span className="text-sm text-gray-400">{newCat.color}</span>
+              </div>
+
+              {catError && <p className="text-sm text-red-600">{catError}</p>}
+
+              <button
+                type="submit"
+                disabled={addingCat}
+                className="w-full bg-gray-900 text-white text-sm py-2 rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors"
+              >
+                {addingCat ? "Adding..." : "Add Category"}
+              </button>
+            </form>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+                                             }
