@@ -350,4 +350,95 @@ export default function TicketDetailPage() {
                     disabled={saving}
                     className="text-sm border border-gray-200 rounded px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
-                    {
+                    {PRIORITY_OPTIONS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
+                  </select>
+                ) : (
+                  <PriorityBadge priority={ticket.priority} />
+                )}
+              </Field>
+
+              <Field label="Category">
+                <span className="text-sm text-gray-700">
+                  {ticket.category ? (
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: ticket.category.color }} />
+                      {ticket.category.name}
+                    </span>
+                  ) : "—"}
+                </span>
+              </Field>
+
+              <Field label="Assignee">
+                {canEdit ? (
+                  <select
+                    value={ticket.assignee?.id || ""}
+                    onChange={(e) => updateField("assigneeId", e.target.value || null)}
+                    disabled={saving}
+                    className="text-sm border border-gray-200 rounded px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="">Unassigned</option>
+                    {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+                  </select>
+                ) : (
+                  <span className="text-sm text-gray-700">{ticket.assignee?.name || "Unassigned"}</span>
+                )}
+              </Field>
+
+              <Field label="Due date">
+                {canEdit ? (
+                  <input
+                    type="date"
+                    value={ticket.dueDate ? format(new Date(ticket.dueDate), "yyyy-MM-dd") : ""}
+                    onChange={(e) => updateField("dueDate", e.target.value || null)}
+                    disabled={saving}
+                    className="text-sm border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                ) : (
+                  <span className={`text-sm ${isOverdue ? "text-red-600 font-medium" : "text-gray-700"}`}>
+                    {ticket.dueDate ? format(new Date(ticket.dueDate), "dd MMM yyyy") : "—"}
+                    {isOverdue ? " ⚠" : ""}
+                  </span>
+                )}
+              </Field>
+
+              {canEdit && (
+                <Field label="Drive / Dropbox link">
+                  <input
+                    type="url"
+                    value={ticket.driveLink || ""}
+                    onChange={(e) => updateField("driveLink", e.target.value || null)}
+                    placeholder="https://drive.google.com/…"
+                    className="text-sm border border-gray-200 rounded px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </Field>
+              )}
+
+              <Field label="Created by">
+                <span className="text-sm text-gray-700">{ticket.createdBy.name}</span>
+              </Field>
+
+              <Field label="Created">
+                <span className="text-sm text-gray-500">{format(new Date(ticket.createdAt), "dd MMM yyyy")}</span>
+              </Field>
+            </div>
+
+            {/* Activity feed */}
+            <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-5">
+              <h3 className="text-sm font-semibold text-gray-900 mb-4">Activity</h3>
+              <ActivityFeed activities={ticket.activities} />
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-xs text-gray-400 font-medium uppercase tracking-wide">{label}</span>
+      {children}
+    </div>
+  );
+                      }
