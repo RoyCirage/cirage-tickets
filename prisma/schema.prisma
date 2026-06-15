@@ -93,4 +93,5 @@ model Attachment {
   ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
   commentId String?
-  comment   Comment? @relation(fields: [
+  comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+}
