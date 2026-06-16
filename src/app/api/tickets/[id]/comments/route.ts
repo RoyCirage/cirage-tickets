@@ -30,7 +30,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     },
   });
 
-  // Email notifications for comment -- notify assignee and ticket creator (excluding commenter)
+  // Email notifications for comment — notify assignee and ticket creator (excluding commenter)
   try {
     const ticket = await prisma.ticket.findUnique({
       where: { id: params.id },
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         notify.set(ticket.createdBy.id, ticket.createdBy);
       }
 
-      for (const recipient of notify.values()) {
+      for (const recipient of Array.from(notify.values())) {
         const emailData = commentEmail(
           ticket.title,
           ticket.id,
