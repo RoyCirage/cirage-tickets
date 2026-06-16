@@ -30,4 +30,42 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     },
   });
 
-  // Email notifications for comment — notify assignee
+  // Email notifications for comment -- notify assignee and ticket creator (excluding commenter)
+  try {
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: params.id },
+      include: {
+        assignee: { select: { id: true, name: true, email: true } },
+        createdBy: { select: { id: true, name: true, email: true } },
+      },
+    });
+
+    if (ticket) {
+      const { sendEmail, commentEmail } = await import("@/lib/email");
+      const notify = new Map<string, { name: string; email: string }>();
+
+      if (ticket.assignee && ticket.assignee.id !== session.user.id) {
+        notify.set(ticket.assignee.id, ticket.assignee);
+      }
+      if (ticket.createdBy.id !== session.user.id) {
+        notify.set(ticket.createdBy.id, ticket.createdBy);
+      }
+
+      for (const recipient of notify.values()) {
+        const emailData = commentEmail(
+          ticket.title,
+          ticket.id,
+          recipient.name,
+          session.user.name ?? "Someone",
+          content.trim()
+        );
+        await sendEmail({ to: recipient.email, ...emailData });
+      }
+    }
+  } catch (e) {
+    // Don't fail the request if email errors
+    console.error("Comment email error:", e);
+  }
+
+  return NextResponse.json(comment, { status: 201 });
+}
