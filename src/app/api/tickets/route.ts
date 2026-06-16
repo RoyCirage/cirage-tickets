@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
       OR: [{ assigneeId: userId }, { createdById: userId }],
     };
   }
-  // ADMIN sees all — no extra filter
+  // ADMIN sees all -- no extra filter
 
   if (status) whereClause.status = status;
   if (priority) whereClause.priority = priority;
@@ -108,4 +108,19 @@ export async function POST(req: NextRequest) {
     data: {
       action: "created this ticket",
       ticketId: ticket.id,
-     
+      userId: session.user.id,
+    },
+  });
+
+  // Email notification if assigned
+  if (assigneeId && assigneeId !== session.user.id) {
+    const assignee = await prisma.user.findUnique({ where: { id: assigneeId } });
+    if (assignee) {
+      const { sendEmail, assignedEmail } = await import("@/lib/email");
+      const emailData = assignedEmail(title, ticket.id, assignee.name);
+      await sendEmail({ to: assignee.email, ...emailData });
+    }
+  }
+
+  return NextResponse.json(ticket, { status: 201 });
+}
